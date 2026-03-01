@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSA Grade Checker - Pokemon Card Grading</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="pokemon-ball">⚪</span>
+                <h1>PSA Grade Checker</h1>
+            </div>
+            <p class="tagline">Grade your Pokemon cards instantly</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Card Search Section -->
+            <section id="card-search-section" class="card-search-section">
+                <div class="search-container">
+                    <input type="text" id="card-search-input" placeholder="Search Pokemon card (e.g., Charizard Base Set)">
+                    <button id="search-btn" class="btn btn-search">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div id="search-results" class="search-results hidden"></div>
+            </section>
+
+            <!-- Camera View Section -->
+            <section id="camera-section" class="camera-section">
+                <div class="viewfinder-container">
+                    <video id="camera-feed" autoplay playsinline></video>
+                    <canvas id="capture-canvas" style="display: none;"></canvas>
+                    <img id="captured-image" class="hidden" alt="Captured Pokemon card">
+                    
+                    <!-- Overlay Guide -->
+                    <div class="card-guide">
+                        <div class="guide-corner top-left"></div>
+                        <div class="guide-corner top-right"></div>
+                        <div class="guide-corner bottom-left"></div>
+                        <div class="guide-corner bottom-right"></div>
+                        <div class="guide-text">Position card within frame</div>
+                    </div>
+                </div>
+
+                <!-- Camera Controls -->
+                <div class="camera-controls">
+                    <button id="switch-camera" class="btn btn-secondary" title="Switch Camera">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </button>
+                    
+                    <button id="capture-btn" class="btn btn-capture">
+                        <div class="capture-ring"></div>
+                    </button>
+                    
+                    <button id="upload-btn" class="btn btn-secondary" title="Upload Image">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                    </button>
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="results-section hidden">
+                <div class="result-card">
+                    <div class="result-header">
+                        <h2>Grading Results</h2>
+                        <button id="new-scan-btn" class="btn btn-text">Scan Another Card</button>
+                    </div>
+                    
+                    <!-- Grade Display -->
+                    <div class="grade-display">
+                        <div class="grade-circle" id="grade-circle">
+                            <span class="grade-number" id="grade-number">-</span>
+                            <span class="grade-label">PSA</span>
+                        </div>
+                        <div class="grade-info">
+                            <h3 id="grade-description">Analyzing...</h3>
+                            <p class="confidence" id="confidence-level">Confidence: --%</p>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Details -->
+                    <div class="analysis-details">
+                        <h4>Condition Analysis</h4>
+                        <div class="factor-list">
+                            <div class="factor-item">
+                                <span class="factor-name">Centering</span>
+                                <div class="factor-bar">
+                                    <div class="factor-fill" id="centering-bar" style="width: 0%"></div>
+                                </div>
+                                <span class="factor-value" id="centering-value">--</span>
+                            </div>
+                            <div class="factor-item">
+                                <span class="factor-name">Corners</span>
+                                <div class="factor-bar">
+                                    <div class="factor-fill" id="corners-bar" style="width: 0%"></div>
+                                </div>
+                                <span class="factor-value" id="corners-value">--</span>
+                            </div>
+                            <div class="factor-item">
+                                <span class="factor-name">Edges</span>
+                                <div class="factor-bar">
+                                    <div class="factor-fill" id="edges-bar" style="width: 0%"></div>
+                                </div>
+                                <span class="factor-value" id="edges-value">--</span>
+                            </div>
+                            <div class="factor-item">
+                                <span class="factor-name">Surface</span>
+                                <div class="factor-bar">
+                                    <div class="factor-fill" id="surface-bar" style="width: 0%"></div>
+                                </div>
+                                <span class="factor-value" id="surface-value">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected Card Info -->
+                    <div id="card-info" class="card-info hidden">
+                        <div class="card-info-header">
+                            <img id="card-image" src="" alt="Card">
+                            <div class="card-details">
+                                <h3 id="card-name">Card Name</h3>
+                                <p id="card-set">Set Name</p>
+                                <p id="card-rarity">Rarity</p>
+                            </div>
+                        </div>
+                        
+                        <!-- TCG Player Pricing -->
+                        <div class="pricing-section">
+                            <h4>TCG Player Market Prices</h4>
+                            <div class="price-grid">
+                                <div class="price-item">
+                                    <span class="price-label">PSA 10</span>
+                                    <span class="price-value" id="price-10">--</span>
+                                </div>
+                                <div class="price-item">
+                                    <span class="price-label">PSA 9</span>
+                                    <span class="price-value" id="price-9">--</span>
+                                </div>
+                                <div class="price-item">
+                                    <span class="price-label">PSA 8</span>
+                                    <span class="price-value" id="price-8">--</span>
+                                </div>
+                                <div class="price-item">
+                                    <span class="price-label">PSA 7</span>
+                                    <span class="price-value" id="price-7">--</span>
+                                </div>
+                                <div class="price-item">
+                                    <span class="price-label">PSA 5-6</span>
+                                    <span class="price-value" id="price-5">--</span>
+                                </div>
+                                <div class="price-item">
+                                    <span class="price-label">Ungraded</span>
+                                    <span class="price-value" id="price-raw">--</span>
+                                </div>
+                            </div>
+                            <a href="#" id="tcg-link" target="_blank" class="tcg-link">View on TCG Player</a>
+                        </div>
+                        
+                        <button id="clear-card" class="btn btn-text btn-clear">Clear Selection</button>
+                    </div>
+
+                    <!-- Disclaimer -->
+                    <div class="disclaimer">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <p>This is an automated assessment for reference only. For official grading, please submit to PSA.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div id="loading-overlay" class="loading-overlay hidden">
+                <div class="loader">
+                    <div class="pokeball-loader"></div>
+                    <p>Analyzing card condition...</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Powered by AI Image Analysis</p>
+        </footer>
+    </div>
+
+    <script src="js/tcgprice.js"></script>
+    <script src="js/tcgplayer.js"></script>
+    <script src="js/camera.js"></script>
+    <script src="js/analyzer.js"></script>
+    <script src="js/grading.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
